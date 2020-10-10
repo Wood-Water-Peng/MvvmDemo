@@ -49,6 +49,12 @@ public class UsersFragment extends Fragment {
         mUsersViewModel.start();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mUsersViewModel.start();
+    }
+
     private void setupFab() {
         FloatingActionButton fab = getActivity().findViewById(R.id.fab_add_task);
 

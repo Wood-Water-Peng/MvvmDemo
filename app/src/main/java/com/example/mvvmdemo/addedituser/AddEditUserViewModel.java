@@ -29,7 +29,9 @@ public class AddEditUserViewModel extends ViewModel implements UserDataSource.Ge
 
     private final MutableLiveData<Event<Object>> mUserUpdated = new MutableLiveData<>();
 
-
+    public LiveData<Event<Object>> getUserUpdatedEvent() {
+        return mUserUpdated;
+    }
     public LiveData<Boolean> getDataLoading() {
         return dataLoading;
     }

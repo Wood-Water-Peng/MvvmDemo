@@ -17,8 +17,8 @@ import com.example.mvvmdemo.addedituser.AddEditUserActivity;
 import com.example.mvvmdemo.addedituser.AddEditUserFragment;
 import com.example.mvvmdemo.util.ActivityUtils;
 
+import static com.example.mvvmdemo.addedituser.AddEditUserActivity.ADD_EDIT_RESULT_OK;
 import static com.example.mvvmdemo.userdetail.UserDetailFragment.REQUEST_EDIT_TASK;
-import static com.example.mvvmdemo.users.UsersActivity.obtainViewModel;
 
 /**
  * 详情页
@@ -80,4 +80,17 @@ public class UserDetailActivity extends AppCompatActivity {
         intent.putExtra(AddEditUserFragment.ARGUMENT_EDIT_TASK_ID, taskId);
         startActivityForResult(intent, REQUEST_EDIT_TASK);
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_EDIT_TASK) {
+            // If the task was edited successfully, go back to the list.
+            if (resultCode == ADD_EDIT_RESULT_OK) {
+                // If the result comes from the add/edit screen, it's an edit.
+                setResult(EDIT_RESULT_OK);
+                finish();
+            }
+        }
+    }
+
 }

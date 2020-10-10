@@ -6,15 +6,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.mvvmdemo.Event;
 import com.example.mvvmdemo.R;
 import com.example.mvvmdemo.ViewModelFactory;
 import com.example.mvvmdemo.util.ActivityUtils;
 
 public class AddEditUserActivity extends AppCompatActivity {
     public static final int REQUEST_CODE = 1;
-
+    public static final int ADD_EDIT_RESULT_OK = RESULT_FIRST_USER + 1;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +27,20 @@ public class AddEditUserActivity extends AppCompatActivity {
         ActivityUtils.replaceFragmentInActivity(getSupportFragmentManager(),
                 addEditTaskFragment, R.id.contentFrame);
 
+        obtainViewModel(this).getUserUpdatedEvent().observe(this, new Observer<Event<Object>>() {
+            @Override
+            public void onChanged(Event<Object> taskIdEvent) {
+                if (taskIdEvent.getContentIfNotHandled() != null) {
+                    AddEditUserActivity.this.onTaskSaved();
+                }
+            }
+        });
+
+    }
+
+    private void onTaskSaved() {
+        setResult(ADD_EDIT_RESULT_OK);
+        finish();
     }
 
     public static AddEditUserViewModel obtainViewModel(FragmentActivity activity) {
