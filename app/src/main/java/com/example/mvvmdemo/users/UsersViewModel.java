@@ -86,7 +86,6 @@ public class UsersViewModel extends ViewModel {
      */
     void openUser(String userId) {
         mOpenUserEvent.setValue(new Event<>(userId));
-
     }
 
     /**

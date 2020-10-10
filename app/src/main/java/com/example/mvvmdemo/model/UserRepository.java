@@ -3,6 +3,7 @@ package com.example.mvvmdemo.model;
 import android.annotation.SuppressLint;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 
@@ -109,8 +110,70 @@ public class UserRepository implements UserDataSource {
     }
 
     @Override
-    public void getUser(@NonNull String userId, @NonNull GetUserCallback callback) {
+    public void getUser(@NonNull final String userId, @NonNull final GetUserCallback callback) {
+        Preconditions.checkNotNull(userId);
+        Preconditions.checkNotNull(callback);
+        User cachedTask = getTaskWithId(userId);
+        // Respond immediately with cache if available
+        if (cachedTask != null) {
+            callback.onUserLoaded(cachedTask);
+            return;
+        }
 
+        // Load from server/persisted if needed.
+
+        // Is the task in the local data source? If not, query the network.
+        mTasksLocalDataSource.getUser(userId, new GetUserCallback() {
+
+            @Override
+            public void onUserLoaded(User task) {
+// Do in memory cache update to keep the app UI up to date
+                if (mCachedTasks == null) {
+                    mCachedTasks = new LinkedHashMap<>();
+                }
+                mCachedTasks.put(task.getId(), task);
+                callback.onUserLoaded(task);
+            }
+
+            @Override
+            public void onDataNotAvailable() {
+                mTasksRemoteDataSource.getUser(userId, new GetUserCallback() {
+
+
+                    @Override
+                    public void onUserLoaded(User task) {
+                        if (task == null) {
+                            onDataNotAvailable();
+                            return;
+                        }
+                        // Do in memory cache update to keep the app UI up to date
+                        if (mCachedTasks == null) {
+                            mCachedTasks = new LinkedHashMap<>();
+                        }
+                        mCachedTasks.put(task.getId(), task);
+
+                        callback.onUserLoaded(task);
+                    }
+
+                    @Override
+                    public void onDataNotAvailable() {
+
+                        callback.onDataNotAvailable();
+                    }
+                });
+            }
+        });
+
+    }
+
+    @Nullable
+    private User getTaskWithId(@NonNull String id) {
+        Preconditions.checkNotNull(id);
+        if (mCachedTasks == null || mCachedTasks.isEmpty()) {
+            return null;
+        } else {
+            return mCachedTasks.get(id);
+        }
     }
 
     private void refreshCache(List<User> tasks) {

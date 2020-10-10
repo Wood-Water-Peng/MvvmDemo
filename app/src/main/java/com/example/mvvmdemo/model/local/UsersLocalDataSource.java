@@ -61,8 +61,26 @@ public class UsersLocalDataSource implements UserDataSource {
     }
 
     @Override
-    public void getUser(@NonNull String userId, @NonNull GetUserCallback callback) {
+    public void getUser(@NonNull final String userId, @NonNull final GetUserCallback callback) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                final User task = mUsersDao.getUserById(userId);
 
+                mAppExecutors.mainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (task != null) {
+                            callback.onUserLoaded(task);
+                        } else {
+                            callback.onDataNotAvailable();
+                        }
+                    }
+                });
+            }
+        };
+
+        mAppExecutors.diskIO().execute(runnable);
     }
 
     @Override
