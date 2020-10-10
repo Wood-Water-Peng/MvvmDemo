@@ -19,6 +19,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.example.mvvmdemo.data.FakeUsersRemoteDataSource;
 import com.example.mvvmdemo.model.UserRepository;
 import com.example.mvvmdemo.model.local.UserDatabase;
 import com.example.mvvmdemo.model.local.UsersLocalDataSource;
@@ -28,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Enables injection of mock implementations for
- * {@link UserDataSource} at compile time. This is useful for testing, since it allows us to use
+ * {@link} at compile time. This is useful for testing, since it allows us to use
  * a fake instance of the class to isolate the dependencies and run a test hermetically.
  */
 public class Injection {

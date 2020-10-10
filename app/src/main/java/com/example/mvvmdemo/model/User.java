@@ -4,7 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+
+import com.google.common.base.Strings;
+
+import java.util.UUID;
 
 /**
  * Immutable model class for a Task.
@@ -43,5 +48,43 @@ public class User {
         mTitle = title;
         mDescription = description;
         mCompleted = completed;
+    }
+
+    @Ignore
+    public User(@Nullable String title, @Nullable String description) {
+        this(title, description, UUID.randomUUID().toString(), false);
+    }
+
+    @NonNull
+    public String getId() {
+        return mId;
+    }
+
+    @Nullable
+    public String getTitle() {
+        return mTitle;
+    }
+
+    @Nullable
+    public String getDescription() {
+        return mDescription;
+    }
+
+    public boolean isCompleted() {
+        return mCompleted;
+    }
+
+    public boolean isEmpty() {
+        return Strings.isNullOrEmpty(mTitle) &&
+                Strings.isNullOrEmpty(mDescription);
+    }
+
+    @Nullable
+    public String getTitleForList() {
+        if (!Strings.isNullOrEmpty(mTitle)) {
+            return mTitle;
+        } else {
+            return mDescription;
+        }
     }
 }

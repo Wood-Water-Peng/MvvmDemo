@@ -4,6 +4,13 @@ import android.annotation.SuppressLint;
 
 import androidx.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static androidx.core.util.Preconditions.checkNotNull;
 
 
@@ -43,9 +50,62 @@ public class UserRepository implements UserDataSource {
         return INSTANCE;
     }
 
-    @Override
-    public void getUsers(@NonNull LoadUserCallback callback) {
+    /**
+     * Marks the cache as invalid, to force an update the next time data is requested. This variable
+     * has package local visibility so it can be accessed from tests.
+     */
+    private boolean mCacheIsDirty = false;
 
+    @Override
+    public void getUsers(@NonNull final LoadUserCallback callback) {
+        Preconditions.checkNotNull(callback);
+        // Respond immediately with cache if available and not dirty
+        if (mCachedTasks != null && !mCacheIsDirty) {
+            callback.onUsersLoaded(new ArrayList<>(mCachedTasks.values()));
+            return;
+        }
+        if (mCacheIsDirty) {
+            // If the cache is dirty we need to fetch new data from the network.
+//            getTasksFromRemoteDataSource(callback);
+        } else {
+            // Query the local storage if available. If not, query the network.
+            mTasksLocalDataSource.getUsers(new LoadUserCallback() {
+                @Override
+                public void onUsersLoaded(List<User> tasks) {
+                    refreshCache(tasks);
+                    callback.onUsersLoaded(new ArrayList<>(mCachedTasks.values()));
+                }
+
+                @Override
+                public void onDataNotAvailable() {
+                    getTasksFromRemoteDataSource(callback);
+                }
+            });
+        }
+    }
+
+    private void getTasksFromRemoteDataSource(@NonNull final LoadUserCallback callback) {
+        mTasksRemoteDataSource.getUsers(new LoadUserCallback() {
+
+            @Override
+            public void onUsersLoaded(List<User> tasks) {
+                refreshCache(tasks);
+                refreshLocalDataSource(tasks);
+                callback.onUsersLoaded(new ArrayList<>(mCachedTasks.values()));
+            }
+
+            @Override
+            public void onDataNotAvailable() {
+                callback.onDataNotAvailable();
+            }
+        });
+    }
+
+    private void refreshLocalDataSource(List<User> tasks) {
+//        mTasksLocalDataSource.deleteAllTasks();
+        for (User task : tasks) {
+            mTasksLocalDataSource.saveUser(task);
+        }
     }
 
     @Override
@@ -53,9 +113,32 @@ public class UserRepository implements UserDataSource {
 
     }
 
-    @Override
-    public void saveUser(@NonNull User task) {
+    private void refreshCache(List<User> tasks) {
+        if (mCachedTasks == null) {
+            mCachedTasks = new LinkedHashMap<>();
+        }
+        mCachedTasks.clear();
+        for (User task : tasks) {
+            mCachedTasks.put(task.getId(), task);
+        }
+        mCacheIsDirty = false;
+    }
 
+    /**
+     * This variable has package local visibility so it can be accessed from tests.
+     */
+    Map<String, User> mCachedTasks;
+
+    @Override
+    public void saveUser(@NonNull User user) {
+        Preconditions.checkNotNull(user);
+        mTasksRemoteDataSource.saveUser(user);
+        mTasksLocalDataSource.saveUser(user);
+        // Do in memory cache update to keep the app UI up to date
+        if (mCachedTasks == null) {
+            mCachedTasks = new LinkedHashMap<>();
+        }
+        mCachedTasks.put(user.getId(), user);
     }
 
     @Override

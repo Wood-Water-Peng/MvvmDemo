@@ -31,4 +31,10 @@ task clean(type: Delete) {
 ext {
     roomVersion = '2.0.0'
     guavaVersion = '27.0.1-android'
+    archLifecycleVersion = '2.0.0'
+    materialVersion = '1.0.0'
+    cardVersion = '1.0.0'
+    recyclerViewVersion = '1.0.0'
+    appCompatVersion = '1.0.2'
+    androidXAnnotations = '1.0.1'
 }

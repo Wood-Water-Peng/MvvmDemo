@@ -8,6 +8,8 @@ import com.example.mvvmdemo.util.AppExecutors;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class UsersLocalDataSource implements UserDataSource {
 
     private static volatile UsersLocalDataSource INSTANCE;
@@ -64,8 +66,15 @@ public class UsersLocalDataSource implements UserDataSource {
     }
 
     @Override
-    public void saveUser(@NonNull User task) {
-
+    public void saveUser(@NonNull final User user) {
+        checkNotNull(user);
+        Runnable saveRunnable = new Runnable() {
+            @Override
+            public void run() {
+                mUsersDao.insertTask(user);
+            }
+        };
+        mAppExecutors.diskIO().execute(saveRunnable);
     }
 
     @Override
